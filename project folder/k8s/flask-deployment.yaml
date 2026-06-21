@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+      - name: flask
+        image: kaeloes/flask-app:latest
+        imagePullPolicy: Always
+        env:
+        - name: DATABASE_PATH
+          value: /data/database.db
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            cpu: 100m
+          limits:
+            cpu: 300m
+        volumeMounts:
+        - name: db-storage
+          mountPath: /data
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: flask-pvc
